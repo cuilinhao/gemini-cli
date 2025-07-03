@@ -8,6 +8,7 @@ import { Metadata } from "next";
 import { NextAuthSessionProvider } from "@/auth/session";
 import { NextIntlClientProvider } from "next-intl";
 import { ThemeProvider } from "@/providers/theme";
+import { Toaster } from "sonner";
 
 export async function generateMetadata({
   params,
@@ -47,6 +48,7 @@ export default async function LocaleLayout({
         <AppContextProvider>
           <ThemeProvider attribute="class" disableTransitionOnChange>
             {children}
+            <Toaster />
           </ThemeProvider>
         </AppContextProvider>
       </NextAuthSessionProvider>

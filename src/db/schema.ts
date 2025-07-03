@@ -8,16 +8,19 @@ import {
   timestamp,
   unique,
   uniqueIndex,
+  bigint,
 } from "drizzle-orm/pg-core";
 
-// Users table
+// Users table - updated for Gemini CLI
 export const users = pgTable(
   "users",
   {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     uuid: varchar({ length: 255 }).notNull().unique(),
     email: varchar({ length: 255 }).notNull(),
-    created_at: timestamp({ withTimezone: true }),
+    created_at: timestamp({ withTimezone: true }).defaultNow(),
+    api_key_enc: text(), // Encrypted Google API Key
+    cost_settings: text(), // JSON string for cost control settings
     nickname: varchar({ length: 255 }),
     avatar_url: varchar({ length: 255 }),
     locale: varchar({ length: 50 }),
@@ -37,6 +40,60 @@ export const users = pgTable(
     ),
   ]
 );
+
+// Chats table - for conversation history
+export const chats = pgTable("chats", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  user_id: varchar({ length: 255 }).notNull(),
+  title: varchar({ length: 255 }),
+  model: varchar({ length: 50 }).notNull(), // gemini-1.5-pro, gemini-1.5-flash
+  created_at: timestamp({ withTimezone: true }).defaultNow(),
+});
+
+// Messages table - for individual messages in chats
+export const messages = pgTable("messages", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  chat_id: integer().notNull(),
+  role: varchar({ length: 20 }).notNull(), // 'user', 'assistant', 'system'
+  content: text().notNull(),
+  token_used: integer().default(0),
+  created_at: timestamp({ withTimezone: true }).defaultNow(),
+});
+
+// Files table - for file upload and summary history
+export const files = pgTable("files", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  user_id: varchar({ length: 255 }).notNull(),
+  filename: varchar({ length: 255 }).notNull(),
+  size: bigint({ mode: "number" }).notNull(),
+  url: varchar({ length: 500 }),
+  file_type: varchar({ length: 50 }), // pdf, txt, log, etc.
+  processed: boolean().default(false),
+  created_at: timestamp({ withTimezone: true }).defaultNow(),
+});
+
+// Limits table - for rate limiting
+export const limits = pgTable("limits", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  user_id: varchar({ length: 255 }).notNull(),
+  window_start: timestamp({ withTimezone: true }).notNull(),
+  req_count: integer().default(0),
+  token_count: integer().default(0),
+  created_at: timestamp({ withTimezone: true }).defaultNow(),
+});
+
+// Usage Stats table - for tracking detailed usage with model information
+export const usageStats = pgTable("usage_stats", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  user_id: varchar({ length: 255 }).notNull(),
+  model: varchar({ length: 50 }).notNull(), // gemini-1.5-pro, gemini-1.5-flash, etc.
+  tokens_used: integer().default(0),
+  estimated_cost: integer().default(0), // Cost in cents (e.g., 125 = $1.25)
+  request_type: varchar({ length: 50 }), // 'chat', 'script', 'analysis', 'summary'
+  prompt_tokens: integer().default(0),
+  completion_tokens: integer().default(0),
+  created_at: timestamp({ withTimezone: true }).defaultNow(),
+});
 
 // Orders table
 export const orders = pgTable("orders", {
