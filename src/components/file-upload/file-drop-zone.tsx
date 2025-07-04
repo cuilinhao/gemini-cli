@@ -5,7 +5,7 @@ import { Upload, File, X, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { PDFParser, type PDFParseResult } from '@/lib/pdf-parser';
+import type { PDFParseResult } from '@/lib/pdf-parser';
 
 interface FileDropZoneProps {
   onFileProcessed: (result: PDFParseResult) => void;
@@ -50,17 +50,20 @@ export default function FileDropZone({ onFileProcessed, className = '' }: FileDr
     setError(null);
     setResult(null);
     
-    // Validate file
-    const validation = PDFParser.validateFile(file);
-    if (!validation.valid) {
-      setError(validation.error || 'Invalid file');
-      return;
-    }
-    
-    setSelectedFile(file);
-    setProcessing(true);
-    
     try {
+      // Dynamically import PDFParser to avoid SSR issues
+      const { PDFParser } = await import('@/lib/pdf-parser');
+      
+      // Validate file
+      const validation = PDFParser.validateFile(file);
+      if (!validation.valid) {
+        setError(validation.error || 'Invalid file');
+        return;
+      }
+      
+      setSelectedFile(file);
+      setProcessing(true);
+      
       const parseResult = await PDFParser.parseFile(file);
       setResult(parseResult);
       onFileProcessed(parseResult);

@@ -19,12 +19,12 @@ export default function MonacoEditor({
   height = '100%',
   options = {},
 }: MonacoEditorProps) {
-  const { theme } = useTheme();
-  const [editorTheme, setEditorTheme] = useState('light');
+  // Force dark theme for our professional interface
+  const [editorTheme, setEditorTheme] = useState('gemini-dark');
 
   useEffect(() => {
-    setEditorTheme(theme === 'dark' ? 'vs-dark' : 'light');
-  }, [theme]);
+    setEditorTheme('gemini-dark');
+  }, []);
 
   const defaultOptions = {
     minimap: { enabled: false },
@@ -87,8 +87,8 @@ export default function MonacoEditor({
       },
     });
 
-    // Set the custom theme
-    monaco.editor.setTheme(theme === 'dark' ? 'gemini-dark' : 'gemini-light');
+    // Set the custom dark theme
+    monaco.editor.setTheme('gemini-dark');
 
     // Add custom key bindings
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
@@ -106,12 +106,12 @@ export default function MonacoEditor({
       language={language}
       value={value}
       onChange={onChange}
-      theme={theme === 'dark' ? 'gemini-dark' : 'gemini-light'}
+      theme="gemini-dark"
       options={defaultOptions}
       onMount={handleEditorDidMount}
       loading={
-        <div className="flex items-center justify-center h-full">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="flex items-center justify-center h-full bg-[#0d1117]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#f78166]"></div>
         </div>
       }
     />

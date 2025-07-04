@@ -74,33 +74,42 @@ export default function FileTree({
   const getFileIcon = (file: FileNode) => {
     if (file.type === 'folder') {
       return expandedFolders.has(file.id) ? (
-        <FolderOpen className="w-4 h-4 text-blue-500" />
+        <FolderOpen className="w-4 h-4 text-[#58a6ff]" />
       ) : (
-        <Folder className="w-4 h-4 text-blue-500" />
+        <Folder className="w-4 h-4 text-[#58a6ff]" />
       );
     }
 
-    // File type icons based on extension
+    // File type icons based on extension with GitHub theme colors
     const ext = file.name.split('.').pop()?.toLowerCase();
     switch (ext) {
       case 'js':
       case 'jsx':
+        return <File className="w-4 h-4 text-[#f7df1e]" />; // JavaScript yellow
       case 'ts':
       case 'tsx':
-        return <File className="w-4 h-4 text-yellow-500" />;
+        return <File className="w-4 h-4 text-[#3178c6]" />; // TypeScript blue
       case 'py':
-        return <File className="w-4 h-4 text-blue-600" />;
+        return <File className="w-4 h-4 text-[#3776ab]" />; // Python blue
       case 'html':
-        return <File className="w-4 h-4 text-orange-500" />;
+        return <File className="w-4 h-4 text-[#e34c26]" />; // HTML orange
       case 'css':
       case 'scss':
-        return <File className="w-4 h-4 text-pink-500" />;
+        return <File className="w-4 h-4 text-[#1572b6]" />; // CSS blue
       case 'json':
-        return <File className="w-4 h-4 text-green-500" />;
+        return <File className="w-4 h-4 text-[#39d353]" />; // JSON green
       case 'md':
-        return <File className="w-4 h-4 text-gray-600" />;
+        return <File className="w-4 h-4 text-[#7d8590]" />; // Markdown gray
+      case 'go':
+        return <File className="w-4 h-4 text-[#00add8]" />; // Go cyan
+      case 'rs':
+        return <File className="w-4 h-4 text-[#ce422b]" />; // Rust orange
+      case 'java':
+        return <File className="w-4 h-4 text-[#ed8b00]" />; // Java orange
+      case 'php':
+        return <File className="w-4 h-4 text-[#777bb4]" />; // PHP purple
       default:
-        return <File className="w-4 h-4 text-gray-500" />;
+        return <File className="w-4 h-4 text-[#7d8590]" />; // Default gray
     }
   };
 
@@ -114,8 +123,8 @@ export default function FileTree({
         <ContextMenu>
           <ContextMenuTrigger>
             <div
-              className={`flex items-center px-2 py-1 hover:bg-muted cursor-pointer group ${
-                isActive ? 'bg-muted' : ''
+              className={`flex items-center px-2 py-1 hover:bg-[#21262d] cursor-pointer group transition-colors rounded-sm mx-1 ${
+                isActive ? 'bg-[#21262d] text-[#e6edf3]' : 'text-[#e6edf3]'
               }`}
               style={{ paddingLeft: `${depth * 12 + 8}px` }}
               onClick={() => {
@@ -130,7 +139,7 @@ export default function FileTree({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="w-4 h-4 p-0 mr-1"
+                  className="w-4 h-4 p-0 mr-1 hover:bg-[#30363d] text-[#7d8590]"
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleFolder(file.id);
@@ -159,7 +168,7 @@ export default function FileTree({
                         cancelEditing();
                       }
                     }}
-                    className="ml-2 h-6 text-sm"
+                    className="ml-2 h-6 text-sm bg-[#0d1117] border-[#30363d] text-[#e6edf3]"
                     autoFocus
                   />
                 ) : (
@@ -169,27 +178,36 @@ export default function FileTree({
             </div>
           </ContextMenuTrigger>
           
-          <ContextMenuContent>
+          <ContextMenuContent className="bg-[#21262d] border-[#30363d]">
             {file.type === 'folder' && (
               <>
-                <ContextMenuItem onClick={() => onFileCreate?.(file, 'file')}>
-                  <Plus className="w-4 h-4 mr-2" />
+                <ContextMenuItem 
+                  onClick={() => onFileCreate?.(file, 'file')}
+                  className="text-[#e6edf3] hover:bg-[#30363d] focus:bg-[#30363d]"
+                >
+                  <Plus className="w-4 h-4 mr-2 text-[#39d353]" />
                   New File
                 </ContextMenuItem>
-                <ContextMenuItem onClick={() => onFileCreate?.(file, 'folder')}>
-                  <Plus className="w-4 h-4 mr-2" />
+                <ContextMenuItem 
+                  onClick={() => onFileCreate?.(file, 'folder')}
+                  className="text-[#e6edf3] hover:bg-[#30363d] focus:bg-[#30363d]"
+                >
+                  <Plus className="w-4 h-4 mr-2 text-[#58a6ff]" />
                   New Folder
                 </ContextMenuItem>
-                <ContextMenuSeparator />
+                <ContextMenuSeparator className="bg-[#30363d]" />
               </>
             )}
-            <ContextMenuItem onClick={() => startEditing(file)}>
-              <Edit3 className="w-4 h-4 mr-2" />
+            <ContextMenuItem 
+              onClick={() => startEditing(file)}
+              className="text-[#e6edf3] hover:bg-[#30363d] focus:bg-[#30363d]"
+            >
+              <Edit3 className="w-4 h-4 mr-2 text-[#f78166]" />
               Rename
             </ContextMenuItem>
             <ContextMenuItem 
               onClick={() => onFileDelete?.(file)}
-              className="text-destructive"
+              className="text-[#f85149] hover:bg-[#30363d] focus:bg-[#30363d]"
             >
               <Trash2 className="w-4 h-4 mr-2" />
               Delete
@@ -207,30 +225,8 @@ export default function FileTree({
   };
 
   return (
-    <div className={`${className}`}>
-      <div className="flex items-center justify-between p-2 border-b">
-        <h3 className="font-semibold text-sm">Explorer</h3>
-        <div className="flex gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onFileCreate?.(null, 'file')}
-            className="w-6 h-6 p-0"
-          >
-            <Plus className="w-3 h-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onFileCreate?.(null, 'folder')}
-            className="w-6 h-6 p-0"
-          >
-            <Folder className="w-3 h-3" />
-          </Button>
-        </div>
-      </div>
-      
-      <div className="overflow-auto">
+    <div className={`${className} bg-[#161b22] text-[#e6edf3]`}>
+      <div className="overflow-auto h-full py-2">
         {files.map((file) => renderFileNode(file))}
       </div>
     </div>
