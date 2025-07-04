@@ -5,6 +5,9 @@ import { SupabaseRateLimitModel } from '@/models/supabase-chat';
 import { SupabaseUsageStatsService } from '@/services/supabase-usage-stats';
 import { getSession } from '@/auth/supabase-config';
 
+// 导入代理配置 - 确保 API 请求通过代理
+import '@/lib/proxy';
+
 export async function POST(request: NextRequest) {
   try {
     const { user: session } = await getSession();
@@ -60,15 +63,25 @@ export async function POST(request: NextRequest) {
             isTrialMode || !hasApiKey // Use trial mode if specified or no API key
           );
 
-          for await (const chunk of generator) {
-            const data = `data: ${JSON.stringify({ chunk })}\n\n`;
-            controller.enqueue(new TextEncoder().encode(data));
-          }
-
-          // Send final message
-          const finalResult = await generator.return(undefined);
-          if (finalResult.value) {
-            await SupabaseRateLimitModel.recordUsage(userIdentifier, finalResult.value.tokensUsed);
+          let finalResult: any = null;
+          
+          // Manually iterate through the generator to get both chunks and final result
+          try {
+            let result = await generator.next();
+            while (!result.done) {
+              const chunk = result.value;
+              const data = `data: ${JSON.stringify({ chunk })}\n\n`;
+              controller.enqueue(new TextEncoder().encode(data));
+              result = await generator.next();
+            }
+            
+            // Now we have the final result
+            if (result.value) {
+              finalResult = result.value;
+              await SupabaseRateLimitModel.recordUsage(userIdentifier, finalResult.tokensUsed);
+            }
+          } catch (error) {
+            console.error('Error consuming generator:', error);
           }
 
           controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'));

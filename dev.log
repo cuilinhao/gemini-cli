@@ -1,0 +1,56 @@
+
+> shipany-template-one@2.5.1 dev
+> cross-env NODE_NO_WARNINGS=1 next dev --turbopack
+
+   ▲ Next.js 15.2.3 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.2:3000
+   - Environments: .env.local, .env.development
+   - Experiments (use with caution):
+     · turbo
+
+ ✓ Starting...
+ ✓ Compiled in 116ms
+ ✓ Ready in 729ms
+ ○ Compiling /[locale] ...
+ ✓ Compiled /[locale] in 2.3s
+ GET / 200 in 3114ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 611ms
+ GET /api/auth/session 200 in 952ms
+ GET /api/auth/session 200 in 16ms
+ GET / 200 in 196ms
+ GET /api/auth/session 200 in 43ms
+ GET /api/auth/session 200 in 39ms
+ ✓ Compiled /api/chat/stream in 301ms
+Making streaming API call to Gemini
+🔍 Google Search grounding 已启用 - 检测到需要实时信息的查询
+🔴 Gemini 流式 API 调用失败: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse: fetch failed
+🌐 网络连接问题 - 可能是防火墙、代理或地区限制
+ POST /api/chat/stream 200 in 14297ms
+Making streaming API call to Gemini
+🔍 Google Search grounding 已启用 - 检测到需要实时信息的查询
+🔴 Gemini 流式 API 调用失败: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse: fetch failed
+🌐 网络连接问题 - 可能是防火墙、代理或地区限制
+ POST /api/chat/stream 200 in 18470ms
+   Reload env: .env.local
+ ⚠ Found a change in next.config.mjs. Restarting the server to apply the changes...
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error: Cannot find module '/Users/linhao/Desktop/project/gemini-cli/src/lib/proxy.js' imported from /Users/linhao/Desktop/project/gemini-cli/next.config.mjs
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:860:10)
+    at defaultResolve (node:internal/modules/esm/resolve:984:11)
+    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:780:12)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:704:25)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:687:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:305:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:137:49) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/linhao/Desktop/project/gemini-cli/src/lib/proxy.js'
+}
+
+Node.js v22.16.0
+[?25h

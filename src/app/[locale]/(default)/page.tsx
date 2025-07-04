@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSession, type AuthUser } from '@/auth/supabase-config';
-import { ChevronLeft, ChevronRight, Play, Settings, FileText, MessageSquare, Upload, X, BarChart3, Terminal, Search, GitBranch, Bell, Maximize2, Minimize2, MoreHorizontal, Folder, Code, Zap, Sparkles, Bot, Monitor, Database, Cloud, Lock, Palette } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, Settings, FileText, MessageSquare, Upload, X, BarChart3, Terminal, Search, GitBranch, Bell, Maximize2, Minimize2, MoreHorizontal, Folder, Code, Zap, Sparkles, Bot, Monitor, Database, Cloud, Lock, Palette, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -94,6 +94,7 @@ export default function LandingPage() {
   });
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [trialUserId, setTrialUserId] = useState<string | null>(null);
+  const [copiedMessageIndex, setCopiedMessageIndex] = useState<number | null>(null);
 
   // Check authentication and trial mode
   useEffect(() => {
@@ -103,9 +104,14 @@ export default function LandingPage() {
         setSession(user);
         setLoading(false);
 
+        // 默认启用试用模式，除非用户已登录或明确禁用
         const trialMode = localStorage.getItem('trialMode');
-        if (trialMode === 'true') {
+        const disableTrialMode = localStorage.getItem('disableTrialMode') === 'true';
+        
+        if (!user && !disableTrialMode) {
+          // 默认启用试用模式
           setIsTrialMode(true);
+          localStorage.setItem('trialMode', 'true');
           
           // Generate or get trial user ID
           let userId = localStorage.getItem('trialUserId');
@@ -123,21 +129,26 @@ export default function LandingPage() {
           if (messages.length === 1) {
             setMessages(prev => [...prev, {
               role: 'assistant',
-              content: `Welcome to Gemini CLI Trial Mode! 🎉
+              content: `欢迎使用 Gemini CLI！🎉
 
-You have access to:
-• 50 requests per day
-• 1000 tokens per day  
-• Gemini 1.5 Flash model
-• Code assistance and script generation
-• Monaco code editor
+当前处于试用模式，你可以：
+• 每日 50 次请求
+• 每日 1000 tokens  
+• 使用 Gemini 1.5 Flash 模型
+• 代码辅助和脚本生成
+• Monaco 代码编辑器
 
-Some features are limited in trial mode. Sign in with Google or GitHub to unlock unlimited usage and all features!
+试用模式功能有限。登录 Google 或 GitHub 账户可解锁完整功能！
 
-Try asking me to help with your code or use /script to generate bash scripts!`
+请问有什么编程问题我可以帮助你解决吗？`
             }]);
           }
-        } else if (!user) {
+        } else if (user) {
+          // 用户已登录，禁用试用模式
+          setIsTrialMode(false);
+          localStorage.removeItem('trialMode');
+        } else if (!user && disableTrialMode) {
+          // 用户明确禁用试用模式且未登录，跳转到登录页
           router.push('/auth/signin');
           return;
         }
@@ -457,6 +468,34 @@ Try asking me to help with your code or use /script to generate bash scripts!`
     console.log('Rename file:', file, 'to:', newName);
   };
 
+  const handleCopyMessage = async (content: string, messageIndex: number) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedMessageIndex(messageIndex);
+      // 2秒后重置复制状态
+      setTimeout(() => {
+        setCopiedMessageIndex(null);
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to copy text:', error);
+      // 降级方案：创建临时文本域
+      const textArea = document.createElement('textarea');
+      textArea.value = content;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        setCopiedMessageIndex(messageIndex);
+        setTimeout(() => {
+          setCopiedMessageIndex(null);
+        }, 2000);
+      } catch (fallbackError) {
+        console.error('Fallback copy failed:', fallbackError);
+      }
+      document.body.removeChild(textArea);
+    }
+  };
+
   const getLanguageFromFile = (filename: string): string => {
     const ext = filename.split('.').pop()?.toLowerCase();
     switch (ext) {
@@ -681,7 +720,6 @@ Try asking me to help with your code or use /script to generate bash scripts!`
                   onChange={(value) => handleFileChange(activeFile, value || '')}
                   language={getLanguageFromFile(activeFile)}
                   height="100%"
-                  theme="vs-dark"
                   options={{
                     fontSize: 13,
                     lineHeight: 20,
@@ -870,7 +908,7 @@ Try asking me to help with your code or use /script to generate bash scripts!`
                     <span className="text-xs font-semibold text-white">U</span>
                   </div>
                 )}
-                <div className={`flex-1 p-3 rounded-lg ${
+                <div className={`flex-1 p-3 rounded-lg relative group ${
                   msg.role === 'user' 
                     ? 'bg-[#1f2937] border border-[#374151]' 
                     : 'bg-[#161b22] border border-[#30363d]'
@@ -878,6 +916,25 @@ Try asking me to help with your code or use /script to generate bash scripts!`
                   <div className="text-sm text-[#e6edf3] whitespace-pre-wrap leading-relaxed">
                     {msg.content}
                   </div>
+                  
+                  {/* 复制按钮 - 只在 AI 消息中显示 */}
+                  {msg.role === 'assistant' && (
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 hover:bg-[#30363d] text-[#7d8590] hover:text-white"
+                        onClick={() => handleCopyMessage(msg.content, index)}
+                        title={copiedMessageIndex === index ? "已复制!" : "复制消息"}
+                      >
+                        {copiedMessageIndex === index ? (
+                          <Check className="w-3 h-3 text-green-400" />
+                        ) : (
+                          <Copy className="w-3 h-3" />
+                        )}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

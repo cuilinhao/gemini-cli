@@ -681,7 +681,6 @@ Try asking me to help with your code or use /script to generate bash scripts!`
                   onChange={(value) => handleFileChange(activeFile, value || '')}
                   language={getLanguageFromFile(activeFile)}
                   height="100%"
-                  theme="vs-dark"
                   options={{
                     fontSize: 13,
                     lineHeight: 20,
